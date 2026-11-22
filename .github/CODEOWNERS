@@ -1,6 +1,6 @@
 # 경로별 리뷰 자동 요청 (필수 승인은 아님 — 팀원 누구든 1명 Approve면 merge 가능)
 *            @sxnhxa
-/api/        @sunwookang0314
+/api/        @sunwookang0314-stack
 /ui/         @hwa0907
 /eval/       @hwa0907
 /infra/      @sxnhxa
