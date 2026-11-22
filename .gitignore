@@ -1,0 +1,43 @@
+# ===== 비밀정보 (절대 커밋 금지) =====
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*
+.aws/
+
+# ===== 모델 가중치 (S3 models/pii-ner/ 에서 관리) =====
+models/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.onnx
+*.ckpt
+
+# ===== 데이터 (S3 train/, eval/, eval-hand/ 에서 관리) =====
+data/
+*.jsonl
+*.parquet
+*.csv
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.ipynb_checkpoints/
+
+# ===== 수행계획서 원본 (학번 포함, 로컬에만 보관) =====
+GARIM_수행계획서*
+
+# ===== OS / 에디터 =====
+.DS_Store
+.idea/
+.vscode/
+*.swp
