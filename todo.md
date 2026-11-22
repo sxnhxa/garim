@@ -26,7 +26,7 @@
   cp .env.example .env
   ```
 - [ ] [CONTRIBUTING.md](CONTRIBUTING.md) 읽기. **main에 직접 push 금지**, 브랜치 → PR → 다른 팀원 1명 Approve → Squash merge
-- [ ] 이 `todo.md` PR에 Approve 남기기 (PR 흐름 연습)
+- [ ] 첫 작업은 브랜치 → PR → 리뷰 흐름으로 올려 보기 (PR 흐름 연습)
 
 ## 2. 가장 먼저 할 일: API 계약 확정 (11/24까지, 전원)
 
