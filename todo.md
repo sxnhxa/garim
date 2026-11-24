@@ -116,7 +116,7 @@ UI(윤경화)와 채점(윤경화)이 API 응답 형식에 의존하므로 **이
 - [x] ECR `garim` 리포지토리, CloudWatch 로그 그룹 `/ecs/garim`
 
 ### 배포 (14주차)
-- [ ] Task Execution Role (이미지 pull, 로그 쓰기) / Task Role (`masked/*` Put·Get, 테이블 Put·Get) 분리 → `infra/`에 정책 JSON
+- [x] Task Execution Role (이미지 pull, 로그 쓰기) / Task Role (`masked/*` Put·Get, 테이블 Put·Get) 분리 → `infra/`에 정책 JSON (`garim-task-execution-role`, `garim-task-role`)
 - [ ] ECS 클러스터, Task Definition (1 vCPU·2GB), Service, 보안 그룹 TCP 8000 /32
 - [ ] 로그 지표 필터: success_count, error_count, latency_ms
 - [ ] 서울 리전 Fargate 단가 확인 → 비용표

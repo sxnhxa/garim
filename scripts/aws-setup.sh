@@ -2,7 +2,8 @@
 # GARIM AWS 기본 자원 생성 (13주차, todo.md 5절 "AWS 기본 자원")
 #
 #   S3 버킷 / DynamoDB 테이블 / ECR 리포지토리 / CloudWatch 로그 그룹 /
-#   학습용·평가셋용 IAM 사용자(인라인 정책)
+#   학습용·평가셋용 IAM 사용자(인라인 정책) /
+#   ECS Task Execution Role·Task Role (14주차 #15, 인라인 정책)
 #
 # 사용: scripts/aws-setup.sh
 #   - .env의 S3_BUCKET, DDB_TABLE, AWS_REGION을 읽습니다 (버킷 이름은 레포에 적지 않음).
@@ -21,16 +22,24 @@ LOG_GROUP="${LOG_GROUP:-/ecs/garim}"
 LOG_RETENTION_DAYS=30
 TRAIN_USER=garim-train-uploader
 EVAL_USER=garim-eval-uploader
+EXEC_ROLE=garim-task-execution-role
+TASK_ROLE=garim-task-role
 export AWS_REGION="$REGION" AWS_DEFAULT_REGION="$REGION" AWS_PAGER=""
 
 say() { printf '\n== %s\n' "$*"; }
-render() { sed "s|\${S3_BUCKET}|${S3_BUCKET}|g" "$1"; }
 
 say "계정 확인"
 aws sts get-caller-identity --query Arn --output text
+# 계정 ID는 레포에 적지 않고 실행할 때 조회해 정책에 채웁니다.
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+render() {
+  sed -e "s|\${S3_BUCKET}|${S3_BUCKET}|g" \
+      -e "s|\${AWS_ACCOUNT_ID}|${AWS_ACCOUNT_ID}|g" \
+      -e "s|\${AWS_REGION}|${REGION}|g" "$1"
+}
 
 say "S3 버킷: ${S3_BUCKET}"
-if aws s3api head-bucket --bucket "$S3_BUCKET" 2>/dev/null; then
+if aws s3api head-bucket --bucket "$S3_BUCKET" >/dev/null 2>&1; then
   echo "이미 있음"
 else
   aws s3api create-bucket --bucket "$S3_BUCKET" \
@@ -100,6 +109,28 @@ ensure_user() {
 }
 ensure_user "$TRAIN_USER" infra/policies/train-uploader.json
 ensure_user "$EVAL_USER" infra/policies/eval-uploader.json
+
+ensure_role() {
+  local name=$1 policy_file=$2 desc=$3
+  say "IAM 역할: ${name}"
+  if aws iam get-role --role-name "$name" >/dev/null 2>&1; then
+    aws iam update-assume-role-policy --role-name "$name" \
+      --policy-document "$(render infra/policies/ecs-tasks-trust.json)"
+    echo "이미 있음 (신뢰 정책 갱신)"
+  else
+    aws iam create-role --role-name "$name" --description "$desc" \
+      --assume-role-policy-document "$(render infra/policies/ecs-tasks-trust.json)" \
+      --tags Key=Project,Value=garim >/dev/null
+    echo "생성"
+  fi
+  aws iam put-role-policy --role-name "$name" --policy-name "${name}-policy" \
+    --policy-document "$(render "$policy_file")"
+  echo "정책 적용: ${policy_file}"
+}
+ensure_role "$EXEC_ROLE" infra/policies/task-execution-role.json \
+  "GARIM ECS: pull garim image, write /ecs/garim logs"
+ensure_role "$TASK_ROLE" infra/policies/task-role.json \
+  "GARIM API: S3 masked/ and DynamoDB garim-requests only"
 
 say "완료"
 echo "액세스 키는 콘솔 IAM > 사용자 > 보안 자격 증명에서 직접 발급하세요."

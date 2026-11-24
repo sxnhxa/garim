@@ -19,6 +19,21 @@ AWS 배포 설정 (담당: 김승하)
 | IAM 사용자 | `garim-train-uploader` (강선우) | `train/*`, `models/*`에 `s3:PutObject`만 ([policies/train-uploader.json](policies/train-uploader.json)) |
 | IAM 사용자 | `garim-eval-uploader` (윤경화) | `eval/*`, `eval-hand/*` Put·Get·List만 ([policies/eval-uploader.json](policies/eval-uploader.json)) |
 
-- 정책 JSON의 `${S3_BUCKET}`은 스크립트가 실행할 때 채웁니다.
+## ECS 역할 (14주차, #15)
+
+같은 스크립트로 만듭니다. 신뢰 정책([policies/ecs-tasks-trust.json](policies/ecs-tasks-trust.json))은 `ecs-tasks.amazonaws.com`만, 그리고 이 계정의 ECS에서 온 요청만 허용합니다.
+
+| 역할 | 쓰는 주체 | 허용 범위 |
+| --- | --- | --- |
+| `garim-task-execution-role` | ECS (Task 시작 시) | ECR `garim` 이미지 pull, 로그 그룹 `/ecs/garim` 쓰기. `ecr:GetAuthorizationToken`만 리소스 지정이 안 돼서 `*` ([policies/task-execution-role.json](policies/task-execution-role.json)) |
+| `garim-task-role` | FastAPI 앱 | S3 `masked/*` Put·Get, `masked/` 목록, DynamoDB `garim-requests` PutItem·GetItem ([policies/task-role.json](policies/task-role.json)) |
+
+- Task Role에 `masked/` 목록 권한이 있는 이유: 없으면 30일 지나 지워진 마스킹본을 조회할 때 S3가 404 대신 403(AccessDenied)을 돌려줍니다. 목록 권한이 있어야 `NoSuchKey`로 구분해 `masked_text: null`로 응답할 수 있습니다 (명세 3절).
+- 실행 중인 Task는 `models/`, `train/`, `eval/`에 접근하지 않습니다 (모델은 이미지 안에 포함).
+- 계정의 기존 `ecsTaskExecutionRole`(4주차 실습)은 쓰지 않습니다. 관리형 정책이라 모든 ECR·로그에 접근할 수 있어서입니다.
+
+## 공통
+
+- 정책 JSON의 `${S3_BUCKET}`, `${AWS_ACCOUNT_ID}`, `${AWS_REGION}`은 스크립트가 실행할 때 채웁니다 (계정 ID는 레포에 적지 않음).
 - 액세스 키는 스크립트가 만들지 않습니다. 콘솔에서 직접 발급해 당사자에게 전달합니다 (git, 카톡 X).
 - 학습 사용자는 `eval/*`에 접근할 수 없고, 평가 사용자는 `train/*`, `models/*`에 접근할 수 없습니다 (평가셋·학습셋 분리).
