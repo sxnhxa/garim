@@ -109,11 +109,11 @@ UI(윤경화)와 채점(윤경화)이 API 응답 형식에 의존하므로 **이
 - [ ] 팀원 초대, 12~16주차 milestone과 이슈 등록
 
 ### AWS 기본 자원 (13주차 초, 서울 리전)
-- [ ] S3 버킷: 퍼블릭 액세스 차단, SSE-S3, `masked/` 30일 수명 주기
-- [ ] **학습 전용 IAM 사용자**: `models/*`에 `s3:PutObject`만 허용. 키를 강선우에게 안전하게 전달 (git, 카톡 X)
-- [ ] 학습셋 업로드 권한(`train/*`) 정리, 평가셋(`eval/*`, `eval-hand/*`) 업로드는 윤경화만
-- [ ] DynamoDB `garim-requests` 생성 (윤경화 설계 기준, 조건부 쓰기로 같은 request_id 재기록 방지)
-- [ ] ECR `garim` 리포지토리, CloudWatch 로그 그룹 `/ecs/garim`
+- [x] S3 버킷: 퍼블릭 액세스 차단, SSE-S3, `masked/` 30일 수명 주기
+- [ ] **학습 전용 IAM 사용자** `garim-train-uploader`: `train/*`, `models/*`에 `s3:PutObject`만 허용 (생성 완료). **키를 강선우에게 안전하게 전달** (git, 카톡 X)
+- [ ] 평가셋(`eval/*`, `eval-hand/*`)은 윤경화만: `garim-eval-uploader` 생성 완료. **키를 윤경화에게 전달**
+- [x] DynamoDB `garim-requests` 생성 (윤경화 설계 기준, 조건부 쓰기로 같은 request_id 재기록 방지)
+- [x] ECR `garim` 리포지토리, CloudWatch 로그 그룹 `/ecs/garim`
 
 ### 배포 (14주차)
 - [ ] Task Execution Role (이미지 pull, 로그 쓰기) / Task Role (`masked/*` Put·Get, 테이블 Put·Get) 분리 → `infra/`에 정책 JSON
