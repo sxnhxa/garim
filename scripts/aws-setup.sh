@@ -22,6 +22,7 @@ LOG_GROUP="${LOG_GROUP:-/ecs/garim}"
 LOG_RETENTION_DAYS=30
 TRAIN_USER=garim-train-uploader
 EVAL_USER=garim-eval-uploader
+API_DEV_USER=garim-api-dev
 EXEC_ROLE=garim-task-execution-role
 TASK_ROLE=garim-task-role
 export AWS_REGION="$REGION" AWS_DEFAULT_REGION="$REGION" AWS_PAGER=""
@@ -109,6 +110,8 @@ ensure_user() {
 }
 ensure_user "$TRAIN_USER" infra/policies/train-uploader.json
 ensure_user "$EVAL_USER" infra/policies/eval-uploader.json
+# 로컬에서 API의 S3·DynamoDB 저장을 테스트하는 개발용 사용자. Task Role과 같은 정책을 씁니다.
+ensure_user "$API_DEV_USER" infra/policies/task-role.json
 
 ensure_role() {
   local name=$1 policy_file=$2 desc=$3
@@ -136,3 +139,4 @@ say "완료"
 echo "액세스 키는 콘솔 IAM > 사용자 > 보안 자격 증명에서 직접 발급하세요."
 echo "  ${TRAIN_USER} → 강선우 (Colab Secrets에만 저장)"
 echo "  ${EVAL_USER} → 윤경화"
+echo "  ${API_DEV_USER} → 강선우 (로컬 .env/프로필에만 저장)"

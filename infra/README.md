@@ -16,7 +16,8 @@ AWS 배포 설정 (담당: 김승하)
 | DynamoDB | `garim-requests` | PK `request_id`(S), 온디맨드. 항목은 [API 명세 3절](../docs/api-spec.md) |
 | ECR | `garim` | push 시 취약점 스캔 |
 | CloudWatch 로그 그룹 | `/ecs/garim` | 30일 보존 |
-| IAM 사용자 | `garim-train-uploader` (강선우) | `train/*`, `models/*`에 `s3:PutObject`만 ([policies/train-uploader.json](policies/train-uploader.json)) |
+| IAM 사용자 | `garim-train-uploader` (강선우) | `train/*`, `models/*` 업로드, `models/*` 읽기·목록 (Docker 빌드 때 모델 받기용) ([policies/train-uploader.json](policies/train-uploader.json)) |
+| IAM 사용자 | `garim-api-dev` (강선우) | 로컬에서 API 저장 기능 테스트용. **Task Role과 같은 정책** ([policies/task-role.json](policies/task-role.json)) |
 | IAM 사용자 | `garim-eval-uploader` (윤경화) | `eval/*`, `eval-hand/*` Put·Get·List만 ([policies/eval-uploader.json](policies/eval-uploader.json)) |
 
 ## ECS 역할 (14주차, #15)
