@@ -85,7 +85,7 @@ UI(윤경화)와 채점(윤경화)이 API 응답 형식에 의존하므로 **이
 - [ ] A·B 점수 차이가 크면 강선우에게 **점수와 틀린 유형만** 전달 (문장 원문 X)
 
 ### 저장소 설계 (13주차)
-- [ ] DynamoDB `garim-requests` 스키마: PK `request_id`, 상태, 글자 수, 탐지 개수, model_version, latency_ms. **원문 필드 없음**
+- [ ] DynamoDB `garim-requests` 스키마: PK `request_id`, 상태, 글자 수, 탐지 개수, model_version, latency_ms, created_at, s3_key. **원문 필드 없음** (API 명세 3절 기준)
 - [ ] S3 경로: `masked/{날짜}/{request_id}.txt`
 - [ ] 설계가 끝나면 김승하에게 전달 (생성과 IAM은 김승하가 담당)
 
