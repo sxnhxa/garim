@@ -110,8 +110,8 @@ UI(윤경화)와 채점(윤경화)이 API 응답 형식에 의존하므로 **이
 
 ### AWS 기본 자원 (13주차 초, 서울 리전)
 - [x] S3 버킷: 퍼블릭 액세스 차단, SSE-S3, `masked/` 30일 수명 주기
-- [ ] **학습 전용 IAM 사용자** `garim-train-uploader`: `train/*`, `models/*`에 `s3:PutObject`만 허용 (생성 완료). **키를 강선우에게 안전하게 전달** (git, 카톡 X)
-- [ ] 평가셋(`eval/*`, `eval-hand/*`)은 윤경화만: `garim-eval-uploader` 생성 완료. **키를 윤경화에게 전달**
+- [x] **학습 전용 IAM 사용자** `garim-train-uploader`: `train/*`, `models/*`에 `s3:PutObject`만 허용. 키 강선우에게 전달 완료
+- [x] 평가셋(`eval/*`, `eval-hand/*`)은 윤경화만: `garim-eval-uploader`. 키 윤경화에게 전달 완료
 - [x] DynamoDB `garim-requests` 생성 (윤경화 설계 기준, 조건부 쓰기로 같은 request_id 재기록 방지)
 - [x] ECR `garim` 리포지토리, CloudWatch 로그 그룹 `/ecs/garim`
 
