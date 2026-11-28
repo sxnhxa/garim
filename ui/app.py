@@ -123,10 +123,13 @@ def highlight(text, entities):
     out = []
     last = 0
     for e in sorted(entities, key=lambda e: e["start"]):
-        s, end = e["start"], e["end"]
+        s, end = max(e["start"], last), e["end"]  # 앞 구간과 겹치면 겹친 부분은 건너뜀
+        if end <= s:
+            continue
         out.append(html.escape(text[last:s]))
         bg, fg = COLORS.get(e["type"], ("#eeeeee", "#555555"))
-        out.append(f'<mark style="background:{bg};box-shadow:inset 0 -2px 0 {fg}" title="{LABEL.get(e["type"], e["type"])}">'
+        name = html.escape(LABEL.get(e["type"], str(e["type"])))
+        out.append(f'<mark style="background:{bg};box-shadow:inset 0 -2px 0 {fg}" title="{name}">'
                    + html.escape(text[s:end]) + "</mark>")
         last = end
     out.append(html.escape(text[last:]))
@@ -148,7 +151,8 @@ def html_block(inner):
 def summary_text(counts):
     if not counts:
         return "찾은 개인정보 없음"
-    parts = " · ".join(f"{LABEL.get(t, t)} {n}" for t, n in counts.items())
+    parts = " · ".join(f"{html.escape(LABEL.get(t, str(t)))} {html.escape(str(n))}"
+                       for t, n in counts.items())
     return f"<b>{sum(counts.values())}개</b> 찾음 · {parts}"
 
 
@@ -163,8 +167,12 @@ def call_api(path, method="post", **kwargs):
     except ValueError:
         return None, f"서버 응답을 읽을 수 없습니다. (HTTP {res.status_code})"
     if res.status_code != 200:
-        err = data.get("error", {})
+        err = data.get("error") if isinstance(data, dict) else None
+        if not isinstance(err, dict):
+            err = {}
         return None, f"{err.get('message', '요청에 실패했습니다.')} ({err.get('code', res.status_code)})"
+    if not isinstance(data, dict):
+        return None, "서버 응답 형식이 올바르지 않습니다."
     return data, None
 
 
@@ -194,13 +202,21 @@ def details(state):
             st.code(data["request_id"], language=None)
 
 
-# ---------- 상단바 ----------
-try:
-    h = requests.get(f"{API_URL}/health", timeout=2).json()
+@st.cache_data(ttl=10, show_spinner=False)
+def server_status():
+    """상단바 서버 상태. 화면이 다시 그려질 때마다 부르지 않도록 10초 캐시."""
+    try:
+        h = requests.get(f"{API_URL}/health", timeout=2).json()
+    except (requests.exceptions.RequestException, ValueError):
+        return "#dc2626", "서버 연결 안 됨", ""
+    if not isinstance(h, dict):
+        return "#dc2626", "서버 응답 이상", ""
     color, word = ("#16a34a", "서버 연결됨") if h.get("model_loaded") else ("#d97706", "모델 준비 중")
-    ver = f'<span class="ver">{html.escape(str(h.get("model_version")))}</span>'
-except (requests.exceptions.RequestException, ValueError):
-    color, word, ver = "#dc2626", "서버 연결 안 됨", ""
+    return color, word, f'<span class="ver">{html.escape(str(h.get("model_version")))}</span>'
+
+
+# ---------- 상단바 ----------
+color, word, ver = server_status()
 html_block(f'<div class="topbar"><div class="logo"><i></i>GARIM</div>'
            f'<div class="status"><span class="dot" style="background:{color}"></span>{word}{ver}</div></div>')
 
@@ -221,7 +237,7 @@ with tab_text:
             text = st.text_area("원문", height=264, key="input_text", label_visibility="collapsed",
                                 placeholder="개인정보가 들어 있는 문장을 붙여넣으세요.")
             html_block(f'<div class="pane-foot">{len(text):,} / 5,000자</div>')
-        if st.button("가리기", key="btn_text", type="primary", use_container_width=True):
+        if st.button("가리기", key="btn_text", type="primary", width="stretch"):
             data, err = call_api("/mask", json={"text": text})
             st.session_state["r_text"] = {"error": err} if err else {"text": text, "data": data}
     with right:
@@ -233,9 +249,10 @@ with tab_file:
     with left:
         with st.container(key="pane_file"):
             html_block('<div class="pane-head"><span class="pane-title">파일</span></div>')
-            up = st.file_uploader("파일", type=["txt"], label_visibility="collapsed")
+            up = st.file_uploader("파일", type=["txt"], label_visibility="collapsed",
+                                  on_change=lambda: st.session_state.pop("r_file", None))
             html_block('<div class="pane-foot">.txt · UTF-8 · 100KB 이하 · 5,000자 이하</div>')
-        if st.button("가리기", key="btn_file", type="primary", disabled=up is None, use_container_width=True):
+        if st.button("가리기", key="btn_file", type="primary", disabled=up is None, width="stretch"):
             raw = up.getvalue()
             data, err = call_api("/mask/file", files={"file": (up.name, raw, "text/plain")})
             st.session_state["r_file"] = ({"error": err} if err
@@ -251,9 +268,13 @@ with tab_find:
         rid = st.text_input("접수번호", key="rid", label_visibility="collapsed",
                             placeholder="예) 6f1c2a8e-3b4d-4e5f-9a10-7b2c3d4e5f60").strip()
     with c2:
-        clicked = st.button("조회", key="btn_find", type="primary", disabled=not rid, use_container_width=True)
+        clicked = st.button("조회", key="btn_find", type="primary", disabled=not rid, width="stretch")
     if clicked:
         data, err = call_api(f"/results/{quote(rid, safe='')}", method="get")
+        st.session_state["r_find"] = {"error": err} if err else {"data": data}
+    r_find = st.session_state.get("r_find")
+    if r_find:
+        err, data = r_find.get("error"), r_find.get("data")
         if err:
             st.error(err)
         elif data.get("masked_text") is None:
