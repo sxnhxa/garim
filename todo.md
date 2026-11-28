@@ -103,9 +103,9 @@ UI(윤경화)와 채점(윤경화)이 API 응답 형식에 의존하므로 **이
 **보는 곳**: `garim/infra/`, `garim/scripts/`, `docs/evidence/`, 두 레포 PR 리뷰
 
 ### 바로 (12주차 마무리)
-- [ ] **API 명세 `docs/api-spec.md` 초안 작성 → PR로 강선우·윤경화 리뷰** (2번 항목, 11/24까지)
-- [ ] SageMaker Endpoint 할당량 조회 → 캡처를 `docs/evidence/`에
-- [ ] 교수님께 대체 경로(Colab 학습 + ECS/Fargate 배포) 확인
+- [x] **API 명세 `docs/api-spec.md` 초안 작성 → PR로 강선우·윤경화 리뷰** (2번 항목, 11/24까지) → v0.2 확정(#2), v0.2.1(#24)
+- [x] SageMaker 할당량 조회 → 캡처를 `docs/evidence/`에 (학습 0, Endpoint 16)
+- [x] ~~교수님께 대체 경로 확인~~ → 수행계획서 7·8장을 "학습은 할당량 0, 배포는 ECS/Fargate 선택"으로 수정해 대체
 - [x] 팀원 초대, 12~16주차 milestone과 이슈 등록 (garim #5~#20, garim-train #1~#2)
 
 ### AWS 기본 자원 (13주차 초, 서울 리전)
