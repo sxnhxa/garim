@@ -156,15 +156,16 @@ def mask_ok(text):
 
 
 def test_spec_example_v0():
-    # 명세 1절 예시 문장. v0은 이름(NER, v1에서)과 주소(도로명 정규식, 아직 없음 — README)를 못 가려서 전화만 가린다
+    # 명세 1절 예시 문장. v0은 이름(NER, v1에서)은 못 가리고 전화·주소(도로명 정규식)를 가린다. 주소 위치는 명세 예시와 같다(24~42)
     text = "계약자 김민수(010-1234-5678)는 서울특별시 강남구 테헤란로 123에 거주한다."
     body = mask_ok(text)
     assert set(body) == {"request_id", "status", "model_version", "masked_text", "entities",
                          "entity_counts", "char_count", "latency_ms", "created_at"}
     assert body["status"] == "SUCCESS" and body["model_version"] == "v0"
-    assert body["masked_text"] == "계약자 김민수([전화번호])는 서울특별시 강남구 테헤란로 123에 거주한다."
-    assert body["entities"] == [{"type": "PHONE", "start": 8, "end": 21, "source": "regex"}]
-    assert body["entity_counts"] == {"PHONE": 1}
+    assert body["masked_text"] == "계약자 김민수([전화번호])는 [주소]에 거주한다."
+    assert body["entities"] == [{"type": "PHONE", "start": 8, "end": 21, "source": "regex"},
+                                {"type": "ADDRESS", "start": 24, "end": 42, "source": "regex"}]
+    assert body["entity_counts"] == {"PHONE": 1, "ADDRESS": 1}
     assert body["char_count"] == 49
     assert isinstance(body["latency_ms"], int) and body["latency_ms"] >= 0
     assert_utc_now(body["created_at"])
@@ -239,6 +240,22 @@ def test_apply_masks_overlap_does_not_leak():
                 {"type": "PHONE", "start": 7, "end": 20, "source": "regex"}]
     # 바깥 구간(주소) 안의 글자가 전화 표시 뒤에 다시 나오면 안 된다
     assert main.apply_masks(text, entities) == "주소 [주소][전화번호]1"
+
+
+def test_address_masked_and_not_logged(capsys):
+    # 주소는 [주소]로 가려지고, 요청 로그에는 종류별 개수만 남는다(명세 6절: 원문 글자 0)
+    text = "배송지 서울시 강남구 테헤란로 123, 101동 202호 (연락처 " + SECRET + ")"
+    body = mask_ok(text)
+    assert body["masked_text"] == "배송지 [주소] (연락처 [전화번호])"
+    out = capsys.readouterr().out
+    assert '"ADDRESS": 1' in out and "테헤란로" not in out and SECRET not in out
+
+
+def test_mask_worst_case_latency():
+    # 띄어쓰기 없는 5,000자(시·군·구 나누기가 폭발하기 쉬운 꼴)도 요청 한 건이 1초 안에 끝난다
+    for unit in ["시", "서울특별시 " * 8 + "1", "구" * 61 + "1", "세종특별자치시\n" * 6 + "가 1"]:
+        body = mask_ok((unit * (5000 // len(unit) + 1))[:5000])
+        assert body["latency_ms"] < 1000, unit[:6]
 
 
 def test_request_log_lines(capsys):

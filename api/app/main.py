@@ -18,6 +18,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.address_detect import detect_address
 from app.regex_detect import detect
 
 MODEL_VERSION = "v0"
@@ -186,7 +187,10 @@ def mask_text(request: Request, text: str) -> dict:
         raise ApiError(422, "EMPTY_TEXT", "텍스트가 비어 있습니다.")
     if len(text) > MAX_CHARS:
         raise ApiError(422, "TEXT_TOO_LONG", f"텍스트는 {MAX_CHARS:,}자 이하여야 합니다.")
-    entities = merge_same_type(text, detect(text))
+    found = detect(text)
+    if MODEL_VERSION in ("v0", "baseline"):  # 명세 0절: 주소는 v0·기준선만 도로명 정규식, v1은 NER
+        found += detect_address(text, found)
+    entities = merge_same_type(text, found)
     masked = apply_masks(text, entities)
     request.state.entity_counts = dict(Counter(e["type"] for e in entities))
     request.state.latency_ms = round((time.perf_counter() - start) * 1000)
