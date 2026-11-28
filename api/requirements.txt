@@ -1,0 +1,8 @@
+fastapi==0.165.0
+uvicorn==0.54.0
+# /mask/file(multipart) 파싱
+python-multipart==0.0.34
+# 아래는 fastapi·uvicorn이 상한 없이 끌어오는 것. 코드가 이 판의 동작(500 처리, 본문 파싱 400, 접속 로그)에 기대서 고정한다
+starlette==1.10.0
+pydantic==2.14.4
+h11==0.16.0
