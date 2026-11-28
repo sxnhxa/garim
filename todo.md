@@ -1,6 +1,6 @@
 # GARIM TODO
 
-> 발표 **12/14 (일)**, 5분 시연(정상 1건 + 오류 1건).
+> 발표 **12/14 (월)**, 5분 시연(정상 1건 + 오류 1건).
 > 13주차(11/23~): 모델 v1 학습 + 평가 / 14주차(11/30~): 클라우드 배포 / 15주차(12/7~): 데모 리허설
 
 ## 0. 레포가 두 개인 이유
@@ -106,17 +106,17 @@ UI(윤경화)와 채점(윤경화)이 API 응답 형식에 의존하므로 **이
 - [ ] **API 명세 `docs/api-spec.md` 초안 작성 → PR로 강선우·윤경화 리뷰** (2번 항목, 11/24까지)
 - [ ] SageMaker Endpoint 할당량 조회 → 캡처를 `docs/evidence/`에
 - [ ] 교수님께 대체 경로(Colab 학습 + ECS/Fargate 배포) 확인
-- [ ] 팀원 초대, 12~16주차 milestone과 이슈 등록
+- [x] 팀원 초대, 12~16주차 milestone과 이슈 등록 (garim #5~#20, garim-train #1~#2)
 
 ### AWS 기본 자원 (13주차 초, 서울 리전)
-- [ ] S3 버킷: 퍼블릭 액세스 차단, SSE-S3, `masked/` 30일 수명 주기
-- [ ] **학습 전용 IAM 사용자**: `models/*`에 `s3:PutObject`만 허용. 키를 강선우에게 안전하게 전달 (git, 카톡 X)
-- [ ] 학습셋 업로드 권한(`train/*`) 정리, 평가셋(`eval/*`, `eval-hand/*`) 업로드는 윤경화만
-- [ ] DynamoDB `garim-requests` 생성 (윤경화 설계 기준, 조건부 쓰기로 같은 request_id 재기록 방지)
-- [ ] ECR `garim` 리포지토리, CloudWatch 로그 그룹 `/ecs/garim`
+- [x] S3 버킷: 퍼블릭 액세스 차단, SSE-S3, `masked/` 30일 수명 주기
+- [x] **학습 전용 IAM 사용자** `garim-train-uploader`: `train/*`, `models/*`에 `s3:PutObject`만 허용. 키 강선우에게 전달 완료
+- [x] 평가셋(`eval/*`, `eval-hand/*`)은 윤경화만: `garim-eval-uploader`. 키 윤경화에게 전달 완료
+- [x] DynamoDB `garim-requests` 생성 (윤경화 설계 기준, 조건부 쓰기로 같은 request_id 재기록 방지)
+- [x] ECR `garim` 리포지토리, CloudWatch 로그 그룹 `/ecs/garim`
 
 ### 배포 (14주차)
-- [ ] Task Execution Role (이미지 pull, 로그 쓰기) / Task Role (`masked/*` Put·Get, 테이블 Put·Get) 분리 → `infra/`에 정책 JSON
+- [x] Task Execution Role (이미지 pull, 로그 쓰기) / Task Role (`masked/*` Put·Get, 테이블 Put·Get) 분리 → `infra/`에 정책 JSON (`garim-task-execution-role`, `garim-task-role`)
 - [ ] ECS 클러스터, Task Definition (1 vCPU·2GB), Service, 보안 그룹 TCP 8000 /32
 - [ ] 로그 지표 필터: success_count, error_count, latency_ms
 - [ ] 서울 리전 Fargate 단가 확인 → 비용표

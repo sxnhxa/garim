@@ -1,0 +1,16 @@
+{
+  "Rules": [
+    {
+      "ID": "masked-expire-30d",
+      "Filter": { "Prefix": "masked/" },
+      "Status": "Enabled",
+      "Expiration": { "Days": 30 }
+    },
+    {
+      "ID": "abort-incomplete-multipart-7d",
+      "Filter": { "Prefix": "" },
+      "Status": "Enabled",
+      "AbortIncompleteMultipartUpload": { "DaysAfterInitiation": 7 }
+    }
+  ]
+}
